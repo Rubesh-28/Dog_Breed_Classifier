@@ -1,22 +1,16 @@
 import streamlit as st
 import numpy as np
 import tensorflow as tf
-from tensorflow import keras
-from tensorflow.keras.preprocessing.image import load_img, img_to_array
+from tensorflow.keras.preprocessing.image import img_to_array
 from PIL import Image
-
-# Register the KerasLayer from TensorFlow Hub
 import tensorflow_hub as hub
 
-# Function to load model with custom objects
 def load_model_with_custom_objects(model_path):
     custom_objects = {"KerasLayer": hub.KerasLayer}
-    return keras.models.load_model(model_path, custom_objects=custom_objects)
+    return tf.keras.models.load_model(model_path, custom_objects=custom_objects)
 
-# Load the trained model with custom objects
-model = load_model_with_custom_objects("model.h5")
+model = load_model_with_custom_objects("DogBreedModel.h5")
 
-# Class mapping dictionary
 class_names = {
     0: 'affenpinscher',
     1: 'afghan_hound',
@@ -140,35 +134,20 @@ class_names = {
     119: 'yorkshire_terrier'
 }
 
-
-
-# Streamlit app header
 st.title("Dog Breed Classifier")
-
-# Upload an image for classification
 st.sidebar.title("Upload Image")
 uploaded_image = st.sidebar.file_uploader("Choose an image...", type=["jpg", "jpeg", "png"])
-
-# Display the uploaded image and result
 if uploaded_image is not None:
     st.sidebar.image(uploaded_image, caption="Uploaded Image", use_column_width=True)
     image = Image.open(uploaded_image)
     st.image(image, caption="Uploaded Image", use_column_width=True)
-    
-    # Preprocess the uploaded image
+
     image = image.resize((224, 224))
     image = img_to_array(image) / 255.0
     image = np.expand_dims(image, axis=0)
 
-    # Make predictions
     predictions = model.predict(image)
     predicted_class_index = np.argmax(predictions)
-    
-    # Display the result
-    st.write("Class Prediction:")
-    st.write(f"Predicted Class Index: {predicted_class_index}")
-    
-    predicted_class_name = class_names.get(predicted_class_index)
-    st.write(f"Predicted Breed Name: {predicted_class_name}")
 
-# Add more features and information as needed
+    predicted_class_name = class_names.get(predicted_class_index)
+    st.write(f"Predicted Breed: {predicted_class_name}")
